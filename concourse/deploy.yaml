@@ -13,7 +13,7 @@ jobs:
   plan:
   - get: rubiks-git
     trigger: true
-  - set_pipeline: deploy-portfolio
+  - set_pipeline: deploy-rubiks
     file: rubiks-git/concourse/deploy.yaml
 - name: configure
   plan:
@@ -42,7 +42,7 @@ jobs:
           echo "((nfs.private_key))" > ~/.ssh/id_rsa
           chmod 400 ~/.ssh/id_rsa
           ssh-keyscan 10.0.1.198 >> ~/.ssh/known_hosts
-          cd rubiks-git/portfolio
+          cd rubiks-git
           npm i
           npm run build
           chmod -R 777 build
