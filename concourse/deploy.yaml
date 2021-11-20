@@ -30,6 +30,8 @@ jobs:
           tag: 14-alpine
       inputs:
       - name: rubiks-git
+      params:
+        PUBLIC_URL: https://taylordeckard.me/rubiks
       run:
         path: ash
         args:
