@@ -1,0 +1,50 @@
+resources:
+- name: rubiks-git
+  type: git
+  icon: github
+  source:
+    uri: https://github.com/taylordeckard/rubiks.git
+    username: (("github".access_token))
+    password: x-oauth-basic
+    branch: main
+
+jobs:
+- name: set-self
+  plan:
+  - get: rubiks-git
+    trigger: true
+  - set_pipeline: deploy-portfolio
+    file: rubiks-git/concourse/deploy.yaml
+- name: configure
+  plan:
+  - get: rubiks-git
+    passed: [set-self]
+    trigger: true
+  - task: build-react
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: node
+          tag: 14-alpine
+      inputs:
+      - name: rubiks-git
+      run:
+        path: ash
+        args:
+        - -c
+        - |
+          set -e
+          apk update
+          apk add openssh rsync
+          mkdir -p ~/.ssh
+          echo "((nfs.private_key))" > ~/.ssh/id_rsa
+          chmod 400 ~/.ssh/id_rsa
+          ssh-keyscan 10.0.1.198 >> ~/.ssh/known_hosts
+          cd rubiks-git/portfolio
+          npm i
+          npm run build
+          chmod -R 777 build
+          ssh concourse@10.0.1.198 mkdir -p /mnt/shared/cdn/rubiks
+          rsync -r build/* concourse@10.0.1.198:/mnt/shared/cdn/rubiks
