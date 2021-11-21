@@ -48,6 +48,8 @@ export class Cubes {
         }
       }
     }
+    this.all.rotation.x = 0.41;
+    this.all.rotation.y = 2.14;
     scene.add(this.all);
   }
 }

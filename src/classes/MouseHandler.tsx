@@ -47,6 +47,7 @@ export class MouseHandler {
         mouseY: event.clientY,
       };
     } else {
+      event.preventDefault();
       this.mouseClick = {
         isDown,
         cubeX: this.main.cube.rotation.x,
@@ -61,6 +62,7 @@ export class MouseHandler {
     if (event instanceof MouseEvent) {
       this.mousePosition = { x: event.clientX, y: event.clientY };
     } else {
+      event.preventDefault();
       this.mousePosition = { x: event.touches?.[0]?.clientX, y: event.touches?.[0]?.clientY };
     }
   }
