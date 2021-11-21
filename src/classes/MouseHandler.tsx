@@ -48,13 +48,16 @@ export class MouseHandler {
       };
     } else {
       event.preventDefault();
+      const mouseX = event.touches?.[0]?.screenX ?? this.mouseClick.mouseX;
+      const mouseY = event.touches?.[0]?.screenY ?? this.mouseClick.mouseY;
       this.mouseClick = {
         isDown,
+        mouseX,
+        mouseY,
         cubeX: this.main.cube.rotation.x,
         cubeY: this.main.cube.rotation.y,
-        mouseX: event.touches?.[0]?.clientX,
-        mouseY: event.touches?.[0]?.clientY,
       };
+      this.mousePosition = { x: mouseX, y: mouseY };
     }
   }
 
@@ -63,7 +66,7 @@ export class MouseHandler {
       this.mousePosition = { x: event.clientX, y: event.clientY };
     } else {
       event.preventDefault();
-      this.mousePosition = { x: event.touches?.[0]?.clientX, y: event.touches?.[0]?.clientY };
+      this.mousePosition = { x: event.touches?.[0]?.screenX, y: event.touches?.[0]?.screenY };
     }
   }
 
