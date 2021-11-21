@@ -32,20 +32,37 @@ export class MouseHandler {
     elem.onmousedown = this.onMouseChange.bind(this, true);
     elem.onmouseup = this.onMouseChange.bind(this, false);
     elem.onmousemove = this.onMouseMove.bind(this);
+    elem.ontouchstart = this.onMouseChange.bind(this, true);
+    elem.ontouchend = this.onMouseChange.bind(this, false);
+    elem.ontouchmove = this.onMouseMove.bind(this);
   }
 
-  private onMouseChange (isDown: boolean, event: MouseEvent) {
-    this.mouseClick = {
-      isDown,
-      cubeX: this.main.cube.rotation.x,
-      cubeY: this.main.cube.rotation.y,
-      mouseX: event.clientX,
-      mouseY: event.clientY,
-    };
+  private onMouseChange (isDown: boolean, event: MouseEvent | TouchEvent) {
+    if (event instanceof MouseEvent) {
+      this.mouseClick = {
+        isDown,
+        cubeX: this.main.cube.rotation.x,
+        cubeY: this.main.cube.rotation.y,
+        mouseX: event.clientX,
+        mouseY: event.clientY,
+      };
+    } else {
+      this.mouseClick = {
+        isDown,
+        cubeX: this.main.cube.rotation.x,
+        cubeY: this.main.cube.rotation.y,
+        mouseX: event.touches?.[0]?.clientX,
+        mouseY: event.touches?.[0]?.clientY,
+      };
+    }
   }
 
-  private onMouseMove (event: MouseEvent) {
-    this.mousePosition = { x: event.clientX, y: event.clientY };
+  private onMouseMove (event: MouseEvent | TouchEvent) {
+    if (event instanceof MouseEvent) {
+      this.mousePosition = { x: event.clientX, y: event.clientY };
+    } else {
+      this.mousePosition = { x: event.touches?.[0]?.clientX, y: event.touches?.[0]?.clientY };
+    }
   }
 
 }

@@ -27,7 +27,7 @@ export class Main {
     this.cube = this.cubes.all;
     this.light = new HemisphereLight(0xFFFFFF, 0xDDDDDD, 1);
     this.scene.add(this.light);
-    this.camera.position.z = 5;
+    this.camera.position.z = 6;
     this.mouseHandler = new MouseHandler(this);
   }
 }
