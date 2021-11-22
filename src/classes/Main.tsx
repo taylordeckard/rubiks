@@ -6,7 +6,7 @@ import {
   Scene,
   WebGLRenderer,
 } from 'three';
-import { MouseHandler } from './MouseHandler';
+import { EventHandler } from './EventHandler';
 import { Cubes } from './Cubes';
 
 export class Main {
@@ -16,7 +16,7 @@ export class Main {
   public renderer: WebGLRenderer;
   public scene: Scene;
   public light: HemisphereLight;
-  public mouseHandler: MouseHandler;
+  public eventHandler: EventHandler;
   constructor () {
     this.scene = new Scene();
     this.scene.background = new Color(0x242424);
@@ -28,6 +28,6 @@ export class Main {
     this.light = new HemisphereLight(0xFFFFFF, 0xDDDDDD, 1);
     this.scene.add(this.light);
     this.camera.position.z = 6;
-    this.mouseHandler = new MouseHandler(this);
+    this.eventHandler = new EventHandler(this);
   }
 }

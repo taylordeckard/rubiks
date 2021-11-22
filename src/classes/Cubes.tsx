@@ -1,7 +1,9 @@
 import {
   BoxGeometry,
   Group,
+  Object3D,
   TextureLoader,
+  MathUtils,
   Mesh,
   MeshStandardMaterial,
   Scene,
@@ -31,9 +33,9 @@ export class Cubes {
     };
     const geometry = new BoxGeometry();
     this.all = new Group();
-    for (let i = -1; i < 2; i++) {
-      for (let j = -1; j < 2; j++) {
-        for (let k = -1; k < 2; k++) {
+    for (let x = -1; x < 2; x++) {
+      for (let y = -1; y < 2; y++) {
+        for (let z = -1; z < 2; z++) {
           const cube = new Mesh(geometry, [
             this.faceTexture.blue,
             this.faceTexture.green,
@@ -42,14 +44,26 @@ export class Cubes {
             this.faceTexture.orange,
             this.faceTexture.red,
           ]);
-          cube.position.set(i, j, k);
+          cube.position.set(x, y, z);
           this.cubes.push(cube);
           this.all.add(cube);
         }
       }
     }
-    this.all.rotation.x = 0.41;
-    this.all.rotation.y = 2.14;
+
+    // this.all.rotation.x = 0.41;
+    // this.all.rotation.y = 2.14;
     scene.add(this.all);
+
+    const pivot = new Object3D();
+    pivot.rotation.set(0,0,0);
+    const sideCubes = this.cubes.filter(cube => cube.position.y === 1);
+    sideCubes.forEach(cube => {
+      pivot.attach(cube);
+    });
+    pivot.rotation.y = MathUtils.degToRad(180);
+    sideCubes.forEach(cube => {
+      this.all.attach(cube);
+    });
   }
 }
