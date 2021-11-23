@@ -19,8 +19,8 @@ export class MouseEventHandler {
             x: this.parent.main.cube.rotation.x,
             y: this.parent.main.cube.rotation.y,
           },
-          x: event.clientX,
-          y: event.clientY,
+          x: this.parent.pointer.current.x,
+          y: this.parent.pointer.current.y,
         }
       };
     }
@@ -28,8 +28,17 @@ export class MouseEventHandler {
 
   private onMouseMove (event: MouseEvent) {
     if (event instanceof MouseEvent) {
-      this.parent.pointer.current = { x: event.clientX, y: event.clientY };
+      this.parent.pointer.current.x = this.getX(event);
+      this.parent.pointer.current.y = this.getY(event);
     }
+  }
+
+  private getX (event: MouseEvent) {
+    return (event.clientX / window.innerWidth) * 2 - 1;
+  }
+
+  private getY (event: MouseEvent) {
+    return - (event.clientY / window.innerHeight) * 2 + 1;
   }
 
 }

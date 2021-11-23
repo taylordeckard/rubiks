@@ -1,4 +1,5 @@
 import { EventHandler } from './EventHandler';
+import { Vector2 } from 'three';
 
 export class TouchEventHandler {
 
@@ -12,21 +13,16 @@ export class TouchEventHandler {
   private onTouchChange (isDown: boolean, event: TouchEvent) {
     if (event instanceof TouchEvent) {
       event.preventDefault();
-      const touchX = event.touches?.[0]?.screenX ?? this.parent.pointer.current.x;
-      const touchY = event.touches?.[0]?.screenY ?? this.parent.pointer.current.y;
       this.parent.pointer = {
         active: isDown,
-        current: {
-          x: touchX,
-          y: touchY,
-        },
+        current: new Vector2(this.getX(event), this.getY(event)),
         activated: {
           cube: {
             x: this.parent.main.cube.rotation.x,
             y: this.parent.main.cube.rotation.y,
           },
-          x: touchX,
-          y: touchY,
+          x: this.getX(event),
+          y: this.getY(event),
         }
       };
     }
@@ -35,11 +31,19 @@ export class TouchEventHandler {
   private onTouchMove (event: TouchEvent) {
     if (event instanceof TouchEvent) {
       event.preventDefault();
-      this.parent.pointer.current = {
-        x: event.touches?.[0]?.screenX,
-        y: event.touches?.[0]?.screenY,
-      };
+      this.parent.pointer.current.x = this.getX(event);
+      this.parent.pointer.current.y = this.getY(event);
     }
+  }
+
+  private getX (event: TouchEvent) {
+    const touchX = event.touches?.[0]?.clientX;
+    return (touchX / window.innerWidth) * 2 - 1;
+  }
+
+  private getY (event: TouchEvent) {
+    const touchY = event.touches?.[0]?.clientY;
+    return - (touchY / window.innerHeight) * 2 + 1;
   }
 
 }
