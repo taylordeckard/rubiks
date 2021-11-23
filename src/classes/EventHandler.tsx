@@ -1,5 +1,5 @@
 import { Main } from './Main';
-import { KeyEventHandler } from './KeyEventHandler';
+// import { KeyEventHandler } from './KeyEventHandler';
 import { MouseEventHandler } from './MouseEventHandler';
 import { TouchEventHandler } from './TouchEventHandler';
 import { WindowResizeEventHandler } from './WindowResizeEventHandler';
@@ -41,20 +41,50 @@ export class EventHandler {
   public keys: ActiveKey[] = [];
   
   public main: Main;
-  private keyEventHandler: KeyEventHandler;
+  public document = document;
+  // private keyEventHandler: KeyEventHandler;
   private mouseHandler: MouseEventHandler;
   private touchHandler: TouchEventHandler;
   private resizeHandler: WindowResizeEventHandler;
+  private keysToStore = ['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown'];
 
   constructor (main: Main) {
     this.main = main;
-    this.keyEventHandler = new KeyEventHandler(this);
+    // this.keyEventHandler = new KeyEventHandler(this);
     this.mouseHandler = new MouseEventHandler(this);
     this.touchHandler = new TouchEventHandler(this);
     this.resizeHandler = new WindowResizeEventHandler(this);
     document.addEventListener('mouseleave', () => {
       this.pointer.active = false;
     });
+    document.addEventListener('keydown', this.onKeyChange.bind(this, true));
+    document.addEventListener('keyup', this.onKeyChange.bind(this, false));
+  }
+
+
+  private onKeyChange (isDown: boolean, event: KeyboardEvent) {
+    if (event instanceof KeyboardEvent && this.keysToStore.includes(event.key)) {
+      const activeKey = this.keys.find(activeKey => activeKey.key === event.key);
+      if (isDown && !activeKey) {
+        this.keys.push(
+          {
+            key: event.key,
+            stale: false,
+          },
+        );
+      }
+      if (!isDown && activeKey) {
+        const idx = this.keys.indexOf(activeKey);
+        this.keys.splice(idx, 1);
+      }
+    }
+  }
+
+  public addDocumentEventListener (
+    listener: string,
+    handler: (event: Event | KeyboardEvent | MouseEvent | TouchEvent) => void,
+  ) {
+    document.addEventListener(listener, handler);
   }
 
 }

@@ -2,10 +2,9 @@ import {
   BoxGeometry,
   Group,
   Intersection,
-  // Object3D,
+  Object3D,
   TextureLoader,
-  Material,
-  // MathUtils,
+  MathUtils,
   Mesh,
   MeshStandardMaterial,
   Scene,
@@ -29,12 +28,21 @@ interface FaceTextures {
     yellow: MeshStandardMaterial;
 }
 
+export interface FaceRotation {
+  current: number;
+  selection: Mesh[];
+  direction: 'cw' | 'ccw';
+  axis: 'x' | 'y' | 'z';
+}
+
+
 export class Cubes {
   private activeFaceTextures: FaceTextures;
   private inactiveFaceTextures: FaceTextures;
   private cubes: Mesh[] = [];
   private cubeFaceMap: { [key: string]: { [key: number]: number } } = {};
   private selection: Mesh[] = [];
+  private selectedFace: RubiksFace | undefined;
   public all: Group;
   constructor (scene: Scene) {
     const loader = new TextureLoader();
@@ -91,16 +99,6 @@ export class Cubes {
     // this.all.rotation.y = 2.14;
     scene.add(this.all);
 
-    // const pivot = new Object3D();
-    // pivot.rotation.set(0,0,0);
-    // const sideCubes = this.cubes.filter(cube => cube.position.y === 1);
-    // sideCubes.forEach(cube => {
-    //   pivot.attach(cube);
-    // });
-    // pivot.rotation.y = MathUtils.degToRad(180);
-    // sideCubes.forEach(cube => {
-    //   this.all.attach(cube);
-    // });
   }
 
   private getFaceTextures (active = false) {
@@ -134,13 +132,40 @@ export class Cubes {
     }, [] as Mesh[]);
   }
 
-  public selectCubes (cubes: Mesh[]) {
+  private getSelectedFaceAxis (): 'x' | 'y' | 'z' {
+    switch (this.selectedFace) {
+    case RubiksFace.RIGHT:
+    case RubiksFace.LEFT:
+      return 'x';
+    case RubiksFace.TOP:
+    case RubiksFace.BOTTOM:
+      return 'y';
+    case RubiksFace.FRONT:
+    case RubiksFace.BACK:
+      return 'z';
+    default:
+      return 'x';
+    }
+  }
+
+  public updateMatrixWorld () {
+    this.cubes.forEach(cube => cube.updateMatrixWorld());
+  }
+
+  public selectCubes (cubes: Mesh[], faceIndex: number) {
     cubes.forEach(c => c.material = this.getFaceTextures(true));
     this.selection = cubes;
+    this.selectedFace = faceIndex;
   }
 
   public deselectAllCubes () {
     this.cubes.forEach(c => c.material = this.getFaceTextures(false));
+    this.selection = [];
+    this.selectedFace = undefined;
+  }
+
+  public hasSelection () {
+    return this.selection.length !== 0;
   }
 
   /**
@@ -150,8 +175,37 @@ export class Cubes {
     const cubeId = selection.object.uuid;
     const clickedFaceId = this.getFaceFromFaceId(selection.faceIndex as number);
     const globalFaceId = this.cubeFaceMap[cubeId][clickedFaceId];
-    return this.getCubesByFace(globalFaceId);
+    return {
+      sideCubes: this.getCubesByFace(globalFaceId),
+      faceIndex: globalFaceId,
+    };
   }
 
+  public initFaceRotation (direction: 'cw' | 'ccw') {
+    return {
+      direction,
+      current: 0,
+      selection: this.selection,
+      axis: this.getSelectedFaceAxis(),
+    };
+  }
+
+  public rotateFace (faceRotation: FaceRotation) {
+    const pivot = new Object3D();
+    pivot.position.set(0, 0, 0);
+    const current = faceRotation.direction === 'cw'
+      ? faceRotation.current - 1
+      : faceRotation.current + 1;
+    if (Math.abs(faceRotation.current) === 90) {
+      return undefined;
+    }
+    faceRotation.selection.forEach(cube => pivot.attach(cube));
+    pivot.rotateZ(MathUtils.degToRad(faceRotation.current));
+    faceRotation.selection.forEach(cube => this.all.attach(cube));
+    return {
+      ...faceRotation,
+      current,
+    };
+  }
 
 }
