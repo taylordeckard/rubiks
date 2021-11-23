@@ -20,42 +20,47 @@ export enum RubiksFace {
   BACK = 5,
 }
 
+interface FaceTextures {
+    blue: MeshStandardMaterial;
+    green: MeshStandardMaterial;
+    orange: MeshStandardMaterial;
+    red: MeshStandardMaterial;
+    white: MeshStandardMaterial;
+    yellow: MeshStandardMaterial;
+}
+
 export class Cubes {
-  private faceTexture: {
-    blue: () => MeshStandardMaterial;
-    green: () => MeshStandardMaterial;
-    orange: () => MeshStandardMaterial;
-    red: () => MeshStandardMaterial;
-    white: () => MeshStandardMaterial;
-    yellow: () => MeshStandardMaterial;
-  };
+  private activeFaceTextures: FaceTextures;
+  private inactiveFaceTextures: FaceTextures;
   private cubes: Mesh[] = [];
   private cubeFaceMap: { [key: string]: { [key: number]: number } } = {};
+  private selection: Mesh[] = [];
   public all: Group;
   constructor (scene: Scene) {
     const loader = new TextureLoader();
     loader.setPath( 'textures/' );
-    this.faceTexture = {
-      blue: () => new MeshStandardMaterial({ map: loader.load('face_blue.png') }),
-      red: () => new MeshStandardMaterial({ map: loader.load('face_red.png') }),
-      orange: () => new MeshStandardMaterial({ map: loader.load('face_orange.png') }),
-      white: () => new MeshStandardMaterial({ map: loader.load('face_white.png') }),
-      green: () => new MeshStandardMaterial({ map: loader.load('face_green.png') }),
-      yellow: () => new MeshStandardMaterial({ map: loader.load('face_yellow.png') }),
+    this.activeFaceTextures = {
+      blue: new MeshStandardMaterial({ map: loader.load('face_blue_active.png') }),
+      red: new MeshStandardMaterial({ map: loader.load('face_red_active.png') }),
+      orange: new MeshStandardMaterial({ map: loader.load('face_orange_active.png') }),
+      white: new MeshStandardMaterial({ map: loader.load('face_white_active.png') }),
+      green: new MeshStandardMaterial({ map: loader.load('face_green_active.png') }),
+      yellow: new MeshStandardMaterial({ map: loader.load('face_yellow_active.png') }),
+    };
+    this.inactiveFaceTextures = {
+      blue: new MeshStandardMaterial({ map: loader.load('face_blue.png') }),
+      red: new MeshStandardMaterial({ map: loader.load('face_red.png') }),
+      orange: new MeshStandardMaterial({ map: loader.load('face_orange.png') }),
+      white: new MeshStandardMaterial({ map: loader.load('face_white.png') }),
+      green: new MeshStandardMaterial({ map: loader.load('face_green.png') }),
+      yellow: new MeshStandardMaterial({ map: loader.load('face_yellow.png') }),
     };
     const geometry = new BoxGeometry();
     this.all = new Group();
     for (let x = -1; x < 2; x++) {
       for (let y = -1; y < 2; y++) {
         for (let z = -1; z < 2; z++) {
-          const cube = new Mesh(geometry, [
-            this.faceTexture.blue(), // right
-            this.faceTexture.green(), // left
-            this.faceTexture.yellow(), // top 
-            this.faceTexture.white(), // bottom
-            this.faceTexture.orange(), // front
-            this.faceTexture.red(), // back
-          ]);
+          const cube = new Mesh(geometry, this.getFaceTextures());
           cube.position.set(x, y, z);
           this.cubes.push(cube);
           this.cubeFaceMap[cube.uuid] = {};
@@ -98,6 +103,24 @@ export class Cubes {
     // });
   }
 
+  private getFaceTextures (active = false) {
+    return active ? [
+      this.activeFaceTextures.blue, // right
+      this.activeFaceTextures.green, // left
+      this.activeFaceTextures.yellow, // top 
+      this.activeFaceTextures.white, // bottom
+      this.activeFaceTextures.orange, // front
+      this.activeFaceTextures.red, // back
+    ] : [
+      this.inactiveFaceTextures.blue, // right
+      this.inactiveFaceTextures.green, // left
+      this.inactiveFaceTextures.yellow, // top 
+      this.inactiveFaceTextures.white, // bottom
+      this.inactiveFaceTextures.orange, // front
+      this.inactiveFaceTextures.red, // back
+    ];
+  }
+
   private getFaceFromFaceId (faceId: number) {
     return Math.floor(faceId / 2);
   }
@@ -112,16 +135,12 @@ export class Cubes {
   }
 
   public selectCubes (cubes: Mesh[]) {
-    cubes.forEach(c => {
-      (c.material as Material[]).forEach(m => {
-        m.transparent = true;
-        m.opacity = 0.8;
-      });
-    });
+    cubes.forEach(c => c.material = this.getFaceTextures(true));
+    this.selection = cubes;
   }
 
   public deselectAllCubes () {
-    this.cubes.forEach(c => (c.material as Material[]).forEach(m => m.transparent = false));
+    this.cubes.forEach(c => c.material = this.getFaceTextures(false));
   }
 
   /**
