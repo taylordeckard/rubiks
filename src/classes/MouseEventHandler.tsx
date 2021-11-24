@@ -7,6 +7,11 @@ export class MouseEventHandler {
     elem.onmousedown = this.onMouseChange.bind(this, true);
     elem.onmouseup = this.onMouseChange.bind(this, false);
     elem.onmousemove = this.onMouseMove.bind(this);
+    document.addEventListener('mouseleave', this.onDocumentMouseLeave.bind(this));
+  }
+
+  private onDocumentMouseLeave () {
+    this.parent.pointer.active = false;
   }
 
   private onMouseChange (isDown: boolean, event: MouseEvent) {

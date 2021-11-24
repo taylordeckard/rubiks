@@ -5,13 +5,11 @@ export class KeyEventHandler {
   private keysToStore = ['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown'];
 
   constructor (private parent: EventHandler) {
-    parent.addDocumentEventListener('onkeyup', this.onKeyChange.bind(this, true));
+    document.addEventListener('keydown', this.onKeyChange.bind(this, true));
+    document.addEventListener('keyup', this.onKeyChange.bind(this, false));
   }
 
-  private onKeyChange (
-    isDown: boolean,
-    event: Event | KeyboardEvent | MouseEvent | TouchEvent,
-  ) {
+  private onKeyChange (isDown: boolean, event: KeyboardEvent) {
     if (event instanceof KeyboardEvent && this.keysToStore.includes(event.key)) {
       const activeKey = this.parent.keys.find(activeKey => activeKey.key === event.key);
       if (isDown && !activeKey) {
@@ -21,6 +19,10 @@ export class KeyEventHandler {
             stale: false,
           },
         );
+      }
+      if (!isDown && activeKey) {
+        const idx = this.parent.keys.indexOf(activeKey);
+        this.parent.keys.splice(idx, 1);
       }
     }
   }

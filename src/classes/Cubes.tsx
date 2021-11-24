@@ -29,10 +29,11 @@ interface FaceTextures {
 }
 
 export interface FaceRotation {
-  current: number;
-  selection: Mesh[];
-  direction: 'cw' | 'ccw';
   axis: 'x' | 'y' | 'z';
+  current: number;
+  direction: 'cw' | 'ccw';
+  face: RubiksFace;
+  selection: Mesh[];
 }
 
 
@@ -95,8 +96,8 @@ export class Cubes {
       }
     }
 
-    // this.all.rotation.x = 0.41;
-    // this.all.rotation.y = 2.14;
+    this.all.rotation.x = 0.41;
+    this.all.rotation.y = 2.14;
     scene.add(this.all);
 
   }
@@ -148,6 +149,82 @@ export class Cubes {
     }
   }
 
+  private updateCubeFaceMap (selection: Mesh[], faceIndex: RubiksFace, direction: 'cw' | 'ccw') {
+    const translateFaces = (order: RubiksFace[]) => {
+      selection.forEach(cube => {
+        Object.entries(this.cubeFaceMap[cube.uuid]).forEach(([key, value]: [any, number]) => {
+          const map = this.cubeFaceMap[cube.uuid];
+          order.forEach((face: RubiksFace, idx: number) => {
+            if (idx === order.length - 1) {
+              if (value === face) { map[key] = order[0]; }
+            } else {
+              if (value === face) { map[key] = order[idx + 1]; }
+            }
+          });
+        });
+      });
+    };
+    switch (faceIndex) {
+    case RubiksFace.RIGHT:
+      if (direction === 'cw') {
+        translateFaces([RubiksFace.TOP, RubiksFace.BACK, RubiksFace.BOTTOM, RubiksFace.FRONT]);
+      } else {
+        translateFaces([RubiksFace.TOP, RubiksFace.FRONT, RubiksFace.BOTTOM, RubiksFace.BACK]);
+      }
+      break;
+    case RubiksFace.LEFT:
+      if (direction === 'cw') {
+        translateFaces([RubiksFace.TOP, RubiksFace.FRONT, RubiksFace.BOTTOM, RubiksFace.BACK]);
+      } else {
+        translateFaces([RubiksFace.TOP, RubiksFace.BACK, RubiksFace.BOTTOM, RubiksFace.FRONT]);
+      }
+      break;
+    case RubiksFace.TOP:
+      if (direction === 'cw') {
+        translateFaces([RubiksFace.BACK, RubiksFace.RIGHT, RubiksFace.FRONT, RubiksFace.LEFT]);
+      } else {
+        translateFaces([RubiksFace.BACK, RubiksFace.LEFT, RubiksFace.FRONT, RubiksFace.RIGHT]);
+      }
+      break;
+    case RubiksFace.BOTTOM:
+      if (direction === 'cw') {
+        translateFaces([RubiksFace.BACK, RubiksFace.LEFT, RubiksFace.FRONT, RubiksFace.RIGHT]);
+      } else {
+        translateFaces([RubiksFace.BACK, RubiksFace.RIGHT, RubiksFace.FRONT, RubiksFace.LEFT]);
+      }
+      break;
+    case RubiksFace.FRONT:
+      if (direction === 'cw') {
+        translateFaces([RubiksFace.TOP, RubiksFace.RIGHT, RubiksFace.BOTTOM, RubiksFace.LEFT]);
+      } else {
+        translateFaces([RubiksFace.TOP, RubiksFace.LEFT, RubiksFace.BOTTOM, RubiksFace.RIGHT]);
+      }
+      break;
+    case RubiksFace.BACK:
+      if (direction === 'cw') {
+        translateFaces([RubiksFace.TOP, RubiksFace.LEFT, RubiksFace.BOTTOM, RubiksFace.RIGHT]);
+      } else {
+        translateFaces([RubiksFace.TOP, RubiksFace.RIGHT, RubiksFace.BOTTOM, RubiksFace.LEFT]);
+      }
+    }
+  }
+
+  private getRotationDelta (faceRotation: FaceRotation) {
+    let DELTA = 5;
+    const shouldNegateCW = ((faceRotation.face === RubiksFace.BACK
+      || faceRotation.face === RubiksFace.BOTTOM
+      || faceRotation.face === RubiksFace.LEFT)
+      && faceRotation.direction === 'ccw');
+    const shouldNegateCCW = ((faceRotation.face === RubiksFace.FRONT
+      || faceRotation.face === RubiksFace.TOP
+      || faceRotation.face === RubiksFace.RIGHT)
+      && faceRotation.direction === 'cw');
+    if (shouldNegateCW || shouldNegateCCW) {
+      DELTA *= -1;
+    }
+    return DELTA;
+  }
+
   public updateMatrixWorld () {
     this.cubes.forEach(cube => cube.updateMatrixWorld());
   }
@@ -183,24 +260,31 @@ export class Cubes {
 
   public initFaceRotation (direction: 'cw' | 'ccw') {
     return {
-      direction,
-      current: 0,
-      selection: this.selection,
       axis: this.getSelectedFaceAxis(),
+      current: 0,
+      direction,
+      face: this.selectedFace as RubiksFace,
+      selection: this.selection,
     };
   }
 
   public rotateFace (faceRotation: FaceRotation) {
+    const DELTA = this.getRotationDelta(faceRotation);
     const pivot = new Object3D();
     pivot.position.set(0, 0, 0);
-    const current = faceRotation.direction === 'cw'
-      ? faceRotation.current - 1
-      : faceRotation.current + 1;
+    pivot.setRotationFromEuler(this.all.rotation);
+    const current = faceRotation.current + DELTA;
     if (Math.abs(faceRotation.current) === 90) {
+      this.updateCubeFaceMap(faceRotation.selection, faceRotation.face, faceRotation.direction);
       return undefined;
     }
     faceRotation.selection.forEach(cube => pivot.attach(cube));
-    pivot.rotateZ(MathUtils.degToRad(faceRotation.current));
+    const rotateFnMap = {
+      x: pivot.rotateX.bind(pivot),
+      y: pivot.rotateY.bind(pivot),
+      z: pivot.rotateZ.bind(pivot),
+    };
+    rotateFnMap[faceRotation.axis](MathUtils.degToRad(DELTA));
     faceRotation.selection.forEach(cube => this.all.attach(cube));
     return {
       ...faceRotation,
