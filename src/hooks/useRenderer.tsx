@@ -1,19 +1,19 @@
-import { RefObject, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Main } from '../classes';
 import { WEBGL } from '../utils';
 
-export function useRenderer (appRef: HTMLDivElement | null, main: RefObject<Main>) {
+export function useRenderer (appRef: HTMLDivElement | null, main: Main) {
   useEffect(() => {
     if (appRef) {
       if (WEBGL.isWebGLAvailable()) {
-        if (main?.current?.renderer) {
+        if (main.renderer) {
           if (appRef.lastChild) {
             appRef.replaceChild(
               appRef.lastChild,
-              main.current.renderer.domElement,
+              main.renderer.domElement,
             );
           } else {
-            appRef.append(main.current.renderer.domElement);
+            appRef.append(main.renderer.domElement);
           }
         }
       } else {

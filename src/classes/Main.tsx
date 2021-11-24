@@ -1,5 +1,6 @@
 import {
   Color,
+  EventDispatcher,
   Group,
   HemisphereLight,
   PerspectiveCamera,
@@ -18,6 +19,7 @@ export class Main {
   public renderer: WebGLRenderer;
   public scene: Scene;
   public light: HemisphereLight;
+  public dispatcher: EventDispatcher;
   public eventHandler: EventHandler;
   constructor () {
     this.scene = new Scene();
@@ -33,6 +35,7 @@ export class Main {
     this.scene.add(this.light);
     this.camera.position.z = 6;
     this.camera.updateMatrixWorld();
+    this.dispatcher = new EventDispatcher();
     this.eventHandler = new EventHandler(this);
   }
 }

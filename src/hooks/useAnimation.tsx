@@ -1,10 +1,10 @@
-import { RefObject, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Animator, Main } from '../classes';
 
-export function useAnimation (main: RefObject<Main>) {
+export function useAnimation (main: Main) {
   useEffect(() => {
-    if (main?.current) {
-      const animator = new Animator(main.current);
+    if (main) {
+      const animator = new Animator(main);
       
       animator.animate();
     }

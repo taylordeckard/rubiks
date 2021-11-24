@@ -4,6 +4,7 @@ import { FaceRotation } from './Cubes';
 export class Animator {
   private main: Main;
   private activeFaceRotation: FaceRotation | undefined;
+  private hasSelection = false;
   constructor (main: Main) {
     this.main = main;
   }
@@ -36,6 +37,15 @@ export class Animator {
         }, { distance: Number.MAX_VALUE } as any);
         const { sideCubes, faceIndex } = this.main.cubes.getSideByCubeFace(closest);
         this.main.cubes.selectCubes(sideCubes, faceIndex);
+        if (!this.hasSelection) {
+          this.hasSelection = true;
+          this.main.dispatcher.dispatchEvent({ type: 'onSelectionChange', hasSelection: true })
+        }
+      } else {
+        if (this.hasSelection) {
+          this.hasSelection = false;
+          this.main.dispatcher.dispatchEvent({ type: 'onSelectionChange', hasSelection: false })
+        }
       }
     }
   }
