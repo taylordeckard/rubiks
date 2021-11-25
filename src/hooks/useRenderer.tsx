@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
-import { Main } from '../classes';
+import { useContext, useEffect } from 'react';
+import { MainContext } from '../MainContext';
 import { WEBGL } from '../utils';
 
-export function useRenderer (appRef: HTMLDivElement | null, main: Main) {
+export function useRenderer (appRef: HTMLDivElement | null) {
+  const main = useContext(MainContext);
   useEffect(() => {
     if (appRef) {
       if (WEBGL.isWebGLAvailable()) {

@@ -1,21 +1,22 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Main } from './classes';
-import { useAnimation, useMain, useRenderer } from './hooks';
+import { useAnimation, useRenderer } from './hooks';
 import { MobileControls } from './components';
+import { MainContext, mainSingleton } from './MainContext';
 import './App.css';
 
 function App() {
   const [appRef, setAppRef] = useState<HTMLDivElement | null>(null);
   const [showMobileControls, setShowMobileControls] = useState(false);
-  const main: Main = useMain();
-  useAnimation(main);
-  useRenderer(appRef, main);
+  const main: Main = useContext(MainContext);
+  useAnimation();
+  useRenderer(appRef);
   main.dispatcher.addEventListener('onSelectionChange', (event) => {
     setShowMobileControls(event.hasSelection);
   });
 
   return (
-    <>
+    <MainContext.Provider value={mainSingleton}>
       <MobileControls
         show={showMobileControls}
         onClickCW={() => main?.eventHandler.keys.push({
@@ -28,7 +29,7 @@ function App() {
         })}
       />
       <div className="App" ref={setAppRef} />
-    </>
+    </MainContext.Provider>
   );
 }
 
